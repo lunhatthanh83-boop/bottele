@@ -1,0 +1,77 @@
+{
+  "R75NV-K4IWU-ULXVA-AK63S": {
+    "key": "R75NV-K4IWU-ULXVA-AK63S",
+    "duration": "1d",
+    "duration_seconds": 86400,
+    "max_users": 1,
+    "created_by": "6557052839",
+    "created_at": "2026-01-08T01:53:51.022723",
+    "expires_at": "2026-01-09T01:53:51.022723",
+    "activated_by": [
+      {
+        "user_id": "6557052839",
+        "username": "TSP1K33",
+        "first_name": "𝐒𝐏𝟏𝐊𝟑",
+        "activated_at": "2026-01-08T01:54:13.994781"
+      }
+    ]
+  },
+  "U1ZS4-K1UBF-4ISXU-PHXHN": {
+    "key": "U1ZS4-K1UBF-4ISXU-PHXHN",
+    "duration": "5d",
+    "duration_seconds": 432000,
+    "max_users": 1,
+    "created_by": "6557052839",
+    "created_at": "2026-01-08T11:51:20.158025",
+    "expires_at": "2026-01-13T11:51:20.158025",
+    "activated_by": [
+      {
+        "user_id": "6557052839",
+        "username": "TSP1K33",
+        "first_name": "𝐒𝐏𝟏𝐊𝟑",
+        "activated_at": "2026-01-08T11:51:35.522268"
+      }
+    ]
+  },
+  "PH0D5-S2CCZ-SLV2J-6ZPIZ": {
+    "key": "PH0D5-S2CCZ-SLV2J-6ZPIZ",
+    "duration": "5h",
+    "duration_seconds": 18000,
+    "max_users": 5,
+    "created_by": "6557052839",
+    "created_at": "2026-01-08T12:26:36.449701",
+    "expires_at": "2026-01-08T17:26:36.449701",
+    "activated_by": [
+      {
+        "user_id": "5942629091",
+        "username": "Donna22xa",
+        "first_name": "Lão Bản",
+        "activated_at": "2026-01-08T12:27:25.779119"
+      },
+      {
+        "user_id": "7317884918",
+        "username": "cozieg_store",
+        "first_name": "Cozieg Store",
+        "activated_at": "2026-01-08T12:27:27.255186"
+      },
+      {
+        "user_id": "8408616678",
+        "username": "wsgvn",
+        "first_name": "WSG",
+        "activated_at": "2026-01-08T12:27:43.851329"
+      },
+      {
+        "user_id": "6422889939",
+        "username": "duykhanhye",
+        "first_name": "Duy",
+        "activated_at": "2026-01-08T12:28:40.468612"
+      },
+      {
+        "user_id": "7611783388",
+        "username": "iammeancheese",
+        "first_name": "Mean",
+        "activated_at": "2026-01-08T12:28:49.308372"
+      }
+    ]
+  }
+}

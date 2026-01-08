@@ -1,0 +1,272 @@
+{
+  "6557052839": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 6,
+    "last_reset": "2026-01-07T00:23:50.786480",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-07T00:23:50.787987"
+  },
+  "1655434627": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 0,
+    "last_reset": "2026-01-07T01:13:16.862295",
+    "vip_expiry": "2299-10-22T01:14:08.698272",
+    "vip_start": "2026-01-07T01:14:08.698272",
+    "join_date": "2026-01-07T01:15:36.243145"
+  },
+  "6728863708": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T01:31:21.145878",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-07T01:31:21.149387"
+  },
+  "1293503268": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T16:40:58.034305",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "7586137356": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T20:36:06.711330",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-07T20:36:06.712332"
+  },
+  "7567975053": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T22:04:04.130535",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-07T22:04:20.885759"
+  },
+  "2071994134": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T22:08:03.219347",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "6437829943": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T22:13:58.775668",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "8155814169": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T22:15:06.708844",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "6041175237": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T22:21:50.910233",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "7647471372": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 1,
+    "last_reset": "2026-01-07T22:41:24.728665",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-07T22:41:24.732740"
+  },
+  "5942629091": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 14,
+    "last_reset": "2026-01-07T22:49:08.511394",
+    "vip_expiry": "2026-01-09T12:27:25.779119",
+    "vip_start": "2026-01-08T12:27:25.779119",
+    "join_date": "2026-01-07T22:50:06.677742"
+  },
+  "6422889939": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 0,
+    "last_reset": "2026-01-07T22:50:09.416493",
+    "vip_expiry": "2026-01-09T12:28:40.468612",
+    "vip_start": "2026-01-08T12:28:40.468612",
+    "join_date": "2026-01-08T12:28:36.098278"
+  },
+  "7672298857": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T22:59:27.537020",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "8244451546": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T23:09:15.307159",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "7922419435": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 0,
+    "last_reset": "2026-01-07T23:17:57.020642",
+    "vip_expiry": "2026-01-31T00:02:10.679576",
+    "vip_start": "2026-01-08T00:02:10.679576",
+    "join_date": "2026-01-08T00:03:17.308768"
+  },
+  "1455460301": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T23:19:21.339907",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "7853481519": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T23:20:40.472489",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "7218769387": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-07T23:49:26.861125",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-07T23:49:26.862124"
+  },
+  "8459293923": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T00:04:09.607670",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "6209839757": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T00:14:05.383147",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-08T00:15:31.501112"
+  },
+  "7769696628": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T01:10:40.313852",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "7490574579": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T01:12:07.708629",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "5239404761": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T10:58:58.524132",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  },
+  "7317884918": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 0,
+    "last_reset": "2026-01-08T12:27:02.916261",
+    "vip_expiry": "2026-01-09T12:27:27.255186",
+    "vip_start": "2026-01-08T12:27:27.255186",
+    "join_date": "2026-01-08T12:27:23.864145"
+  },
+  "8408616678": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 0,
+    "last_reset": "2026-01-08T12:27:40.962502",
+    "vip_expiry": "2026-01-09T12:27:43.851329",
+    "vip_start": "2026-01-08T12:27:43.851329",
+    "join_date": "2026-01-08T12:27:40.962502"
+  },
+  "7611783388": {
+    "registered": true,
+    "plan": "vip",
+    "file_count": 0,
+    "last_reset": "2026-01-08T12:28:45.613283",
+    "vip_expiry": "2026-01-09T12:28:49.308372",
+    "vip_start": "2026-01-08T12:28:49.308372",
+    "join_date": "2026-01-08T12:28:45.614283"
+  },
+  "7843663930": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T12:34:29.808632",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-08T12:35:30.826363"
+  },
+  "801684389": {
+    "registered": true,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T12:44:25.641802",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": "2026-01-08T12:58:26.984699"
+  },
+  "7585206836": {
+    "registered": false,
+    "plan": "normal",
+    "file_count": 0,
+    "last_reset": "2026-01-08T12:48:04.097156",
+    "vip_expiry": null,
+    "vip_start": null,
+    "join_date": null
+  }
+}
