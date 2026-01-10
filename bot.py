@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import logging
 import asyncio
@@ -5,7 +6,7 @@ import json
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
-from telegram.error import TimedOut, RetryAfter
+from telegram.error import TimedOut, RetryAfter, BadRequest
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import re
@@ -22,6 +23,19 @@ try:
 except ImportError:
     from hotmail import OutlookChecker
 
+
+async def safe_edit_message_text(query_or_message, text, reply_markup=None, parse_mode=None):
+    """Safely edit message text, handling BadRequest when message is not modified."""
+    try:
+        if hasattr(query_or_message, 'edit_message_text'):
+            await query_or_message.edit_message_text(text, reply_markup=reply_markup, parse_mode=parse_mode)
+        else:
+            await query_or_message.edit_text(text, reply_markup=reply_markup, parse_mode=parse_mode)
+    except BadRequest as e:
+        if "message is not modified" not in str(e).lower():
+            raise
+    except Exception:
+        pass
 
 def _split_cookie_path(file_path):
     p = Path(file_path)
@@ -293,7 +307,7 @@ def extract_canva_plan(html_content):
             r'Canva\s+Teams?',
             r'Canva\s+Business',
             r'Canva\s+Enterprise',
-            r'Canva\s+??i\s+nhóm',
+            r'Canva\s+┌──i\s+nhóm',
             r'Canva\s+Doanh\s+nghi?p',
             r'Canva\s+Gratis',
             r'Canva\s+Free',
@@ -540,7 +554,7 @@ def extract_canva_plan(html_content):
             r'Canva\s+Teams?',
             r'Canva\s+Business',
             r'Canva\s+Enterprise',
-            r'Canva\s+??i\s+nhóm',
+            r'Canva\s+┌──i\s+nhóm',
             r'Canva\s+Doanh\s+nghi?p',
             r'Canva\s+Gratis',
             r'Canva\s+Free',
@@ -1022,7 +1036,7 @@ PAYMENT_ACCOUNTS = {
     'ltc': 'LbqPiubpXWrL27VMUGxu2AhdvQmVA37LEL'
 }
 
-BOT_TOKEN = "8132478896:AAFAyuwx_uMWgcp5sI0o7deCCpGM2r-ps-E"
+BOT_TOKEN = "8132478896:AAFhp3aySkbty5b1bLeKvQvvgap2hPqY1oE"
 ADMIN_USER_ID = "6557052839"
 CHANNEL_INVITE_LINK = os.environ.get("CHANNEL_INVITE_LINK", "https://t.me/+-XbtP90HxSE1ZjE1")
 PRIVATE_BLOCK_MESSAGE = "You must join our channel chat to use the bot."
@@ -1255,6 +1269,12 @@ def activate_key(key, user_id, username, first_name):
     if len(activated_by) >= key_data['max_users']:
         return False, "Key is full, cannot activate."
     
+    user_data = get_user_record(user_id)
+    if not user_data.get('registered'):
+        users_db[user_id_str]['registered'] = True
+        users_db[user_id_str]['join_date'] = datetime.now().isoformat()
+        save_users_db()
+    
     activation_info = {
         'user_id': user_id_str,
         'username': username or 'N/A',
@@ -1295,21 +1315,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     chat_id = chat.id if chat else None
 
-    if user and chat_id is not None and not str(chat_id).startswith("-"):
-        user_data = get_user_record(user.id)
-        if user_data.get('plan') != 'vip' and str(user.id) != ADMIN_USER_ID:
-            keyboard = [
+    if user and chat_id is not None:
+        if str(chat_id).startswith("-"):
+            if str(user.id) != ADMIN_USER_ID:
+                await update.message.reply_text("Only admin can use this bot in group chats.")
+                return
+        else:
+            if is_restricted_private(user.id, chat_id):
+                keyboard = [
                 [InlineKeyboardButton("Contact Owner", url="https://t.me/TSP1K33")],
                 [InlineKeyboardButton("Join Channel Chat", url="https://t.me/+IDNwVF4Ue1AyOTVl")]
             ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            text = (
-                "Your current plan is Normal.\n\n"
-                "To use this bot in private chat, please contact the owner to buy VIP\n"
-                "or join our channel chat to use the bot for free."
-            )
-            await update.message.reply_text(text, reply_markup=reply_markup)
-            return
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                text = (
+                    "Your current plan is Normal.\n\n"
+                    "To use this bot in private chat, please contact the owner to buy VIP\n"
+                    "or join our channel chat to use the bot for free."
+                )
+                await update.message.reply_text(text, reply_markup=reply_markup)
+                return
 
     await show_start_login(update=update)
 
@@ -1317,6 +1341,15 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if not user or not is_registered(user.id):
         await show_start_login(update=update)
+        return
+    user_id = user.id
+    chat = update.effective_chat
+    chat_id = chat.id if chat else None
+    if chat_id is not None and is_restricted_private(user_id, chat_id):
+        keyboard = [[InlineKeyboardButton("Join Channel Chat", url=CHANNEL_INVITE_LINK)],
+                    [InlineKeyboardButton("Back", callback_data="back_start")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
         return
     keyboard = [
         [InlineKeyboardButton("Services List", callback_data="services_list"),
@@ -1336,6 +1369,14 @@ async def check_plan(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_start_login(update=update)
         return
     user_id = user.id
+    chat = update.effective_chat
+    chat_id = chat.id if chat else None
+    if chat_id is not None and is_restricted_private(user_id, chat_id):
+        keyboard = [[InlineKeyboardButton("Join Channel Chat", url=CHANNEL_INVITE_LINK)],
+                    [InlineKeyboardButton("Back", callback_data="back_start")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
+        return
     user_data = get_user_record(user_id)
     plan_text = "VIP" if user_data['plan'] == 'vip' else "Normal"
     used_files = user_data['file_count']
@@ -1483,9 +1524,9 @@ async def admin_get_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"   ⫸ Key: {key}\n"
             f"   ⫸ Duration: {duration_formatted}\n"
             f"   ⫸ Max Users: {max_users}\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
             "   /activatekey\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
             "   ➜ STATUS: SUCCESS\n\n"
             "└───────────────────────────────────────┘"
         )
@@ -1520,8 +1561,7 @@ async def admin_remove_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    if not user or not is_registered(user.id):
-        await show_start_login(update=update)
+    if not user:
         return
     
     args = context.args
@@ -1544,10 +1584,10 @@ async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYP
                 "   ⫸ Key: NOT FOUND\n"
                 "   ⫸ Error: The key you entered is \n"
                 "            incorrect or does not exist.\n\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
                 "   Please check your key again or \n"
                 "   contact admin for support.\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
                 "   ➜ STATUS: FAILED ❌\n\n"
                 "└────────────────────────────────────────┘"
             )
@@ -1573,10 +1613,10 @@ async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYP
                 f"   ⫸ Key: {key}\n"
                 "   ⫸ Reason: Key has expired or \n"
                 "             reached maximum usage.\n\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
                 f"   ➜ Remaining slots: {remaining_slots}\n"
                 f"   ➜ Expiry: {expiry_str}\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
                 "   ➜ STATUS: EXPIRED ⚠️\n\n"
                 "└────────────────────────────────────────┘"
             )
@@ -1591,9 +1631,13 @@ async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYP
     max_users = result['max_users']
     
     user_message = (
-        "Your key has been activated successfully!\n\n"
-        f"Key: {key}\n"
-        f"Remaining slots: {remaining}/{max_users}"
+        "┌─── ⋆⋅☆⋅⋆ ── KEY ACTIVATION SUCCESS ── ⋆⋅☆⋅⋆ ───┐\n\n"
+        "   ░▒▓█ KEY ACTIVATED █▓▒░\n\n"
+        f"   ⫸ Key: {key}\n"
+        f"   ⫸ Remaining slots: {remaining}/{max_users}\n\n"
+        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+        "   ➜ STATUS: ACTIVATED ✅\n\n"
+        "└────────────────────────────────────────┘"
     )
     await update.message.reply_text(user_message)
     
@@ -1604,14 +1648,15 @@ async def activate_key_command(update: Update, context: ContextTypes.DEFAULT_TYP
         f"   ⫸ Activated by: {activation_info['first_name']} (@{activation_info['username']})\n"
         f"   ⫸ User ID: {activation_info['user_id']}\n"
         f"   ⫸ Time: {datetime.fromisoformat(activation_info['activated_at']).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
         f"   ➜ Remaining slots: {remaining}/{max_users}\n"
-        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
         "   ➜ STATUS: ACTIVATED ✅\n\n"
         "└────────────────────────────────────────┘"
     )
     try:
-        await context.bot.send_message(chat_id=ADMIN_USER_ID, text=admin_message)
+        if ADMIN_USER_ID:
+            await context.bot.send_message(chat_id=ADMIN_USER_ID, text=admin_message)
     except Exception as e:
         logger.error(f"Error sending notification to admin: {e}")
 
@@ -1619,8 +1664,21 @@ async def login_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.callback_query:
         query = update.callback_query
         user = query.from_user
+        chat_id = query.message.chat.id if query.message else None
     else:
         user = update.effective_user
+        chat = update.effective_chat
+        chat_id = chat.id if chat else None
+
+    if user and chat_id is not None and is_restricted_private(user.id, chat_id):
+        keyboard = [[InlineKeyboardButton("Join Channel Chat", url=CHANNEL_INVITE_LINK)],
+                    [InlineKeyboardButton("Back", callback_data="back_start")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        if update.callback_query:
+            await query.edit_message_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
+        else:
+            await update.message.reply_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
+        return
 
     registered = user is not None and is_registered(user.id)
 
@@ -1671,19 +1729,38 @@ async def help_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(text, reply_markup=reply_markup)
 
 async def create_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
+    if update.callback_query:
+        query = update.callback_query
+        user = query.from_user
+        chat_id = query.message.chat.id if query.message else None
+    else:
+        user = update.effective_user
+        chat = update.effective_chat
+        chat_id = chat.id if chat else None
+    
     if not user:
         return
+    
+    if chat_id is not None and is_restricted_private(user.id, chat_id):
+        keyboard = [[InlineKeyboardButton("Join Channel Chat", url=CHANNEL_INVITE_LINK)],
+                    [InlineKeyboardButton("Back", callback_data="back_start")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        if update.callback_query:
+            await query.edit_message_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
+        else:
+            await update.message.reply_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
+        return
+    
     user_id = user.id
     user_id_str = str(user_id)
     data = get_user_record(user_id)
     if not data.get('registered'):
         users_db[user_id_str]['registered'] = True
         users_db[user_id_str]['join_date'] = datetime.now().isoformat()
-        if user_id_str != ADMIN_USER_ID and users_db[user_id_str]['plan'] != 'vip':
+        if user_id_str != ADMIN_USER_ID and data['plan'] != 'vip':
             users_db[user_id_str]['plan'] = 'normal'
         save_users_db()
-    data = users_db[user_id_str]
+    data = get_user_record(user_id)
     plan_text = "VIP" if data['plan'] == 'vip' else "Normal"
     keyboard = [
         [InlineKeyboardButton("Help", callback_data="help_menu")],
@@ -1705,6 +1782,13 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = user.id
     data = query.data
     chat_id = query.message.chat.id
+
+    if chat_id is not None and is_restricted_private(user_id, chat_id):
+        keyboard = [[InlineKeyboardButton("Join Channel Chat", url=CHANNEL_INVITE_LINK)],
+                    [InlineKeyboardButton("Back", callback_data="back_start")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
+        return
 
     if data == 'back_start':
         await show_start_login(query=query)
@@ -1752,22 +1836,51 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data == 'hotmail_checker':
-        context.user_data['mode'] = 'hotmail_checker'
+        context.user_data['mode'] = 'hotmail_keyword'
         context.user_data.pop('selected_service', None)
+        context.user_data.pop('keyword_file_path', None)
+        keyboard = [
+            [InlineKeyboardButton("Skip", callback_data="skip_hotmail_keyword")],
+            [InlineKeyboardButton("Back", callback_data="main_menu")]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await safe_edit_message_text(
+            query,
+            "┌─── ⋆⋅☆⋅⋆ ── HOTMAIL CHECKER ── ⋆⋅☆⋅⋆ ───┐\n\n"
+            "   ░▒▓█ SYSTEM READY █▓▒░\n\n"
+            "   ⫸ Status: 🟢 Waiting for Keyword\n"
+            "   ⫸ Keyword: .txt file or text\n\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "   ⚠️  INSTRUCTION:\n"
+            "   Step 1: Send a .txt file or message containing keywords.\n"
+            "   to bot use to search in hotmail inbox.\n"
+            "   If no keyword, press Skip.\n"
+            "   After sending, bot will request a hotmail file\n"
+            "   in mail:pass format (.txt, one account per line).\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "└─────────────────────────────────────────┘",
+            reply_markup=reply_markup
+        )
+        return
+    
+    if data == 'skip_hotmail_keyword':
+        context.user_data['mode'] = 'hotmail_checker'
+        context.user_data.pop('keyword_file_path', None)
         keyboard = [[InlineKeyboardButton("Back", callback_data="main_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
+        await safe_edit_message_text(
+            query,
             "┌─── ⋆⋅☆⋅⋆ ── HOTMAIL CHECKER ── ⋆⋅☆⋅⋆ ───┐\n\n"
             "   ░▒▓█ SYSTEM READY █▓▒░\n\n"
             "   ⫸ Status: 🟢 Waiting for Input\n"
             "   ⫸ Format: mail:pass\n"
             "   ⫸ Extension: .txt only\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
             "   ⚠️  INSTRUCTION:\n"
             "   Please send a .txt file containing \n"
             "   hotmail in format mail:pass, \n"
             "   one per line.\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
             "   ➜ [✔] Auto-detect format\n"
             "   ➜ [✔] Fast multi-threading\n"
             "   ➜ [✔] Real-time results\n\n"
@@ -1785,8 +1898,26 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text_body = "\n".join(live_list)
         keyboard = [[InlineKeyboardButton("Back", callback_data="back_hotmail_status")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
+        await safe_edit_message_text(
+            query,
             "LIVE HOTMAIL LIST:\n```" + text_body + "```",
+            reply_markup=reply_markup,
+            parse_mode="Markdown"
+        )
+        return
+
+    if data == 'show_hotmail_keyword':
+        live_with_keyword = context.user_data.get('hotmail_live_with_keyword', [])
+        if not live_with_keyword:
+            await query.answer("No hotmail with keyword found.", show_alert=True)
+            return
+        context.user_data['hotmail_view'] = 'keyword'
+        text_body = "\n".join(live_with_keyword)
+        keyboard = [[InlineKeyboardButton("Back", callback_data="back_hotmail_status")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await safe_edit_message_text(
+            query,
+            "HOTMAIL WITH KEYWORD:\n```" + text_body + "```",
             reply_markup=reply_markup,
             parse_mode="Markdown"
         )
@@ -1807,6 +1938,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         bar = status.get('bar', '')
         percent = status.get('percent', 0)
         status_line = status.get('status_line', "⏳ Checking...")
+        has_keyword = status.get('has_keyword', False)
 
         live_block = ""
         if checked != total and live_preview:
@@ -1814,18 +1946,23 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             live_block = (
                 "   LIVE HOTMAIL:\n"
                 f"{preview_lines}\n"
-                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+                "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
             )
 
+        total_live_count = len(live_list)
+        if has_keyword:
+            live_with_keyword_back = context.user_data.get('hotmail_live_with_keyword', [])
+            total_live_count = len(live_list) + len(live_with_keyword_back)
+        
         text = (
             "┌─── ⋆⋅☆⋅⋆ ── CHECKING STATUS ── ⋆⋅☆⋅⋆ ──┐\n\n"
             "   ░▒▓█ PROCESSING LIST... █▓▒░\n\n"
             f"   ⫸ Total   : {total}\n"
             f"   ⫸ Checked : {checked}\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-            f"   🟢 LIVE   : {len(live_list)}\n"
+            "   ░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█┌──?\n"
+            f"   🟢 LIVE   : {total_live_count}\n"
             f"   🔴 DIE    : {die_count}\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+            "   ░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█?\n\n"
             f"{live_block}"
             f"   PROGRESS: {bar} {percent}%\n\n"
             f"   Status: {status_line}\n\n"
@@ -1833,14 +1970,17 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         keyboard_rows = []
-        if len(live_list) >= 5:
+        if has_keyword:
+            live_with_keyword_back = context.user_data.get('hotmail_live_with_keyword', [])
+            if len(live_list) >= 5:
+                keyboard_rows.append([InlineKeyboardButton("Show All Hotmail Live", callback_data="show_hotmail_live")])
+            if len(live_with_keyword_back) >= 1:
+                keyboard_rows.append([InlineKeyboardButton("Show Hotmail With Keyword", callback_data="show_hotmail_keyword")])
+        elif len(live_list) >= 5:
             keyboard_rows.append([InlineKeyboardButton("Show Hotmail Live", callback_data="show_hotmail_live")])
         reply_markup = InlineKeyboardMarkup(keyboard_rows) if keyboard_rows else None
 
-        if reply_markup:
-            await query.edit_message_text(text, reply_markup=reply_markup)
-        else:
-            await query.edit_message_text(text)
+        await safe_edit_message_text(query, text, reply_markup=reply_markup)
         return
 
     if data == 'admin_panel':
@@ -1930,17 +2070,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['selected_service'] = 'all'
         keyboard = [[InlineKeyboardButton("Back", callback_data="main_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
+        await safe_edit_message_text(
+            query,
             "┌─── ⋆⋅☆⋅⋆ ── SERVICE SELECTION ── ⋆⋅☆⋅⋆ ──┐\n\n"
             "   ░▒▓█ SCANNING CONFIG █▓▒░\n\n"
             "   ⫸ Selected: Scan All Services\n"
             "   ⫸ Requirement: .txt or .zip\n"
             "   ⫸ Type: Cookie File\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
             "   ⚠️  ACTION REQUIRED:\n"
             "   Now send .txt or .zip cookie file \n"
             "   to start the scanning process.\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
             "   ➜ STATUS: WAITING FOR FILE... 📁\n\n"
             "└──────────────────────────────────────────┘",
             reply_markup=reply_markup
@@ -1952,17 +2093,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['selected_service'] = service_key
         keyboard = [[InlineKeyboardButton("Back", callback_data="services_list")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(
+        await safe_edit_message_text(
+            query,
             "┌─── ⋆⋅☆⋅⋆ ── SERVICE SELECTION ── ⋆⋅☆⋅⋆ ──┐\n\n"
             "   ░▒▓█ SCANNING CONFIG █▓▒░\n\n"
             f"   ⫸ Selected: {SERVICES.get(service_key, 'Unknown')}\n"
             "   ⫸ Requirement: .txt or .zip\n"
             "   ⫸ Type: Cookie File\n\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
             "   ⚠️  ACTION REQUIRED:\n"
             "   Now send .txt or .zip cookie file \n"
             "   to start the scanning process.\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
             "   ➜ STATUS: WAITING FOR FILE... 📁\n\n"
             "└──────────────────────────────────────────┘",
             reply_markup=reply_markup
@@ -2072,12 +2214,101 @@ def check_hotmail_api(email, password):
         return 'live'
     return 'die'
 
+def check_hotmail_api_with_keywords(email, password, keyword_file=None):
+    email = email.strip()
+    password = password.strip()
+    if not email or not password:
+        return 'die', False
+    max_retry = 3
+    result = "❌ ERROR"
+    for attempt in range(max_retry):
+        try:
+            try:
+                if keyword_file:
+                    checker = OutlookChecker(keyword_file=keyword_file, debug=False)
+                else:
+                    checker = OutlookChecker(keyword_file=None, debug=False)
+            except TypeError:
+                try:
+                    if keyword_file:
+                        checker = OutlookChecker(keyword_file, False)
+                    else:
+                        checker = OutlookChecker(None, False)
+                except TypeError:
+                    checker = OutlookChecker()
+            result = checker.check(email, password)
+            if any(x in result for x in ["✅ HIT", "🆓 FREE", "❌ BAD", "Locked", "Need Verify", "Timeout"]):
+                break
+            elif "Request Error" in result or "ERROR" in result:
+                if attempt + 1 >= max_retry:
+                    break
+                time.sleep(1)
+            else:
+                break
+        except Exception as e:
+            result = f"❌ ERROR: {str(e)}"
+            if attempt + 1 >= max_retry:
+                break
+            time.sleep(1)
+    if any(x in result for x in ["✅ HIT", "🆓 FREE"]):
+        has_keyword = "✅ HIT" in result
+        keyword_string = ""
+        if has_keyword and "Found:" in result:
+            try:
+                found_part = result.split("Found:")[1].split("|")[0].strip()
+                keywords_found = []
+                import re
+                keyword_pattern = r'([^,()]+)\s*\([^)]+\)'
+                matches = re.findall(keyword_pattern, found_part)
+                keywords_found = [m.strip() for m in matches]
+                if keywords_found:
+                    keyword_string = ", ".join(keywords_found)
+            except Exception:
+                keyword_string = ""
+        return 'live', has_keyword, keyword_string
+    return 'die', False, ""
+
 def process_single_file(file_name, content, selected_service):
     try:
         result = scan_cookie_content(content, selected_service, original_content=content)
         return file_name, result
     except Exception as e:
         return file_name, {'error': f'Error processing file: {str(e)}'}
+    
+async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    if not user or not is_registered(user.id):
+        await show_start_login(update=update)
+        return
+    user_id = user.id
+    chat = update.effective_chat
+    chat_id = chat.id if chat else None
+    if chat_id is not None and is_restricted_private(user_id, chat_id):
+        keyboard = [[InlineKeyboardButton("Join Channel Chat", url=CHANNEL_INVITE_LINK)],
+                    [InlineKeyboardButton("Main Menu", callback_data="main_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(PRIVATE_BLOCK_MESSAGE, reply_markup=reply_markup)
+        return
+    mode = context.user_data.get('mode')
+    if mode == 'hotmail_keyword':
+        text = update.message.text or ""
+        text = text.strip()
+        if not text:
+            await update.message.reply_text("Please send keyword text or use Skip.")
+            return
+        keywords_dir = Path("keywords")
+        keywords_dir.mkdir(parents=True, exist_ok=True)
+        keyword_path = keywords_dir / f"keyword_{user_id}_{int(time.time())}.txt"
+        keyword_path.write_text(text, encoding="utf-8")
+        context.user_data['keyword_file_path'] = str(keyword_path)
+        context.user_data['mode'] = 'hotmail_checker'
+        keyboard = [[InlineKeyboardButton("Back", callback_data="main_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            "Now send a .txt file containing hotmail in format mail:pass, one per line.",
+            reply_markup=reply_markup
+        )
+        return
 
 async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -2095,6 +2326,33 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     mode = context.user_data.get('mode')
+
+    if mode == 'hotmail_keyword':
+        doc = update.message.document
+        if not doc:
+            await update.message.reply_text("No document attached.")
+            return
+        file = await doc.get_file()
+        file_name = clean_filename(doc.file_name or "keyword.txt")
+        ext = Path(file_name).suffix.lower()
+        if ext != '.txt':
+            await update.message.reply_text("Please send a .txt keyword file or type keywords as text.")
+            return
+        file_bytes = await file.download_as_bytearray()
+        keywords_dir = Path("keywords")
+        keywords_dir.mkdir(parents=True, exist_ok=True)
+        keyword_path = keywords_dir / f"keyword_{user_id}_{int(time.time())}.txt"
+        keyword_path.write_bytes(file_bytes)
+        context.user_data['keyword_file_path'] = str(keyword_path)
+        context.user_data['mode'] = 'hotmail_checker'
+        keyboard = [[InlineKeyboardButton("Back", callback_data="main_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            "Now send a .txt file containing hotmail in format mail:pass, one per line.",
+            reply_markup=reply_markup
+        )
+        return
+
     if mode == 'hotmail_checker':
         can_scan, error_msg = can_user_scan(user_id)
         if not can_scan:
@@ -2135,6 +2393,9 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         die_count = 0
         bar_length = 20
         live_preview = []
+        live_with_keyword = []
+        live_without_keyword = []
+        keyword_file_path = context.user_data.get('keyword_file_path')
         context.user_data['hotmail_live_list'] = []
         context.user_data['hotmail_status'] = {}
         context.user_data['hotmail_view'] = 'status'
@@ -2144,26 +2405,48 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "   ░▒▓█ PROCESSING LIST... █▓▒░\n\n"
             f"   ⫸ Total   : {total}\n"
             "   ⫸ Checked : 0\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+            "   ░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█░▒▓█┌──\n"
             "   🟢 LIVE   : 0\n"
             "   🔴 DIE    : 0\n"
-            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+            "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
             f"   PROGRESS: [{'░' * bar_length}] 0%\n\n"
             "   Status: ⏳ Checking...\n\n"
             "└────────────────────────────────────────┘"
         )
 
         for idx, (email, password, original_line) in enumerate(accounts, start=1):
-            result = await asyncio.to_thread(check_hotmail_api, email, password)
+            if keyword_file_path:
+                result, has_keyword, keyword_string = await asyncio.to_thread(
+                    check_hotmail_api_with_keywords, email, password, keyword_file_path
+                )
+            else:
+                result = await asyncio.to_thread(check_hotmail_api, email, password)
+                has_keyword = False
+                keyword_string = ""
             if result == 'live':
-                live_list.append(original_line)
-                live_preview.append(original_line)
-                if len(live_preview) > 5:
-                    live_preview = live_preview[-5:]
+                if keyword_file_path:
+                    if has_keyword:
+                        formatted_line = f"{original_line} | {keyword_string}" if keyword_string else original_line
+                        live_with_keyword.append(formatted_line)
+                    else:
+                        live_without_keyword.append(original_line)
+                        live_list.append(original_line)
+                else:
+                    live_list.append(original_line)
+                
+                preview_line = live_without_keyword[-1] if (keyword_file_path and not has_keyword) else (live_list[-1] if not keyword_file_path else None)
+                if preview_line:
+                    live_preview.append(preview_line)
+                    if len(live_preview) > 5:
+                        live_preview = live_preview[-5:]
             else:
                 die_count += 1
 
-            context.user_data['hotmail_live_list'] = live_list.copy()
+            if keyword_file_path:
+                context.user_data['hotmail_live_list'] = live_without_keyword.copy()
+                context.user_data['hotmail_live_with_keyword'] = live_with_keyword.copy()
+            else:
+                context.user_data['hotmail_live_list'] = live_list.copy()
 
             checked = idx
             filled = int(bar_length * checked / total)
@@ -2179,6 +2462,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'bar': bar,
                 'percent': percent,
                 'status_line': status_line,
+                'has_keyword': bool(keyword_file_path),
             }
 
             view = context.user_data.get('hotmail_view', 'status')
@@ -2190,7 +2474,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     live_block = (
                         "   LIVE HOTMAIL:\n"
                         f"{preview_lines}\n"
-                        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+                        "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
                     )
 
                 text = (
@@ -2198,10 +2482,10 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "   ░▒▓█ PROCESSING LIST... █▓▒░\n\n"
                     f"   ⫸ Total   : {total}\n"
                     f"   ⫸ Checked : {checked}\n"
-                    "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
-                    f"   🟢 LIVE   : {len(live_list)}\n"
+                    "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n"
+                    f"   🟢 LIVE   : {len(live_without_keyword) + len(live_with_keyword) if keyword_file_path else len(live_list)}\n"
                     f"   🔴 DIE    : {die_count}\n"
-                    "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
+                    "   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈\n\n"
                     f"{live_block}"
                     f"   PROGRESS: {bar} {percent}%\n\n"
                     f"   Status: {status_line}\n\n"
@@ -2209,17 +2493,16 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
 
                 keyboard_rows = []
-                if len(live_list) >= 5:
+                if keyword_file_path:
+                    if len(live_without_keyword) >= 5:
+                        keyboard_rows.append([InlineKeyboardButton("Show All Hotmail Live", callback_data="show_hotmail_live")])
+                    if len(live_with_keyword) >= 1:
+                        keyboard_rows.append([InlineKeyboardButton("Show Hotmail With Keyword", callback_data="show_hotmail_keyword")])
+                elif len(live_list) >= 5:
                     keyboard_rows.append([InlineKeyboardButton("Show Hotmail Live", callback_data="show_hotmail_live")])
                 reply_markup = InlineKeyboardMarkup(keyboard_rows) if keyboard_rows else None
 
-                try:
-                    if reply_markup:
-                        await status_msg.edit_text(text, reply_markup=reply_markup)
-                    else:
-                        await status_msg.edit_text(text)
-                except Exception:
-                    pass
+                await safe_edit_message_text(status_msg, text, reply_markup=reply_markup)
 
             elif view == 'full':
                 live_list_full = context.user_data.get('hotmail_live_list', [])
@@ -2227,7 +2510,8 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 keyboard = [[InlineKeyboardButton("Back", callback_data="back_hotmail_status")]]
                 reply_markup = InlineKeyboardMarkup(keyboard)
                 try:
-                    await status_msg.edit_text(
+                    await safe_edit_message_text(
+                        status_msg,
                         "LIVE HOTMAIL LIST:\n```" + text_body + "```",
                         reply_markup=reply_markup,
                         parse_mode="Markdown"
@@ -2235,20 +2519,63 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 except Exception:
                     pass
 
-        if live_list:
-            output = "\n".join(live_list)
-            buffer = BytesIO(output.encode('utf-8'))
-            buffer.name = "hotmail_valid.txt"
-            await update.message.reply_document(
-                document=buffer,
-                filename="hotmail_valid.txt",
-                caption=f"Valid: {len(live_list)}/{total}"
-            )
+            elif view == 'keyword':
+                live_with_keyword_full = context.user_data.get('hotmail_live_with_keyword', [])
+                text_body = "\n".join(live_with_keyword_full) if live_with_keyword_full else ""
+                keyboard = [[InlineKeyboardButton("Back", callback_data="back_hotmail_status")]]
+                reply_markup = InlineKeyboardMarkup(keyboard)
+                try:
+                    await safe_edit_message_text(
+                        status_msg,
+                        "HOTMAIL WITH KEYWORD:\n```" + text_body + "```",
+                        reply_markup=reply_markup,
+                        parse_mode="Markdown"
+                    )
+                except Exception:
+                    pass
+
+        if live_list or (keyword_file_path and live_without_keyword):
+            if keyword_file_path:
+                if live_with_keyword:
+                    output_hit = "\n".join(live_with_keyword)
+                    buffer_hit = BytesIO(output_hit.encode('utf-8'))
+                    buffer_hit.name = "hotmail_keyword_hit.txt"
+                    total_with_keyword = len(live_with_keyword) + len(live_without_keyword) if live_without_keyword else len(live_with_keyword)
+                    await update.message.reply_document(
+                        document=buffer_hit,
+                        filename="hotmail_keyword_hit.txt",
+                        caption=f"Valid with keyword: {len(live_with_keyword)}/{total_with_keyword}"
+                    )
+                if live_without_keyword:
+                    output_free = "\n".join(live_without_keyword)
+                    buffer_free = BytesIO(output_free.encode('utf-8'))
+                    buffer_free.name = "hotmail_valid_nokeyword.txt"
+                    total_live = len(live_with_keyword) + len(live_without_keyword) if live_with_keyword else len(live_without_keyword)
+                    await update.message.reply_document(
+                        document=buffer_free,
+                        filename="hotmail_valid_nokeyword.txt",
+                        caption=f"Valid without keyword: {len(live_without_keyword)}/{total_live}"
+                    )
+            else:
+                output = "\n".join(live_list)
+                buffer = BytesIO(output.encode('utf-8'))
+                buffer.name = "hotmail_valid.txt"
+                await update.message.reply_document(
+                    document=buffer,
+                    filename="hotmail_valid.txt",
+                    caption=f"Valid: {len(live_list)}/{total}"
+                )
         else:
             await update.message.reply_text("No valid hotmail accounts found.")
+
         increment_file_count(user_id)
         increment_daily_scans(1)
-        context.user_data.pop('mode', None)
+        keyboard = [[InlineKeyboardButton("Back to Menu", callback_data="main_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text(
+            "✅ File processed! You can send more hotmail files or go back to menu.",
+            reply_markup=reply_markup
+        )
         return
 
     if 'selected_service' not in context.user_data:
@@ -2462,6 +2789,54 @@ async def send_live_cookies_archive(update: Update, live_cookies, selected_servi
 async def show_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await show_start_login(update=update)
 
+async def handle_new_chat_members(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.new_chat_members:
+        return
+    
+    chat = update.effective_chat
+    chat_id = chat.id if chat else None
+    
+    if not chat_id or not str(chat_id).startswith("-"):
+        return
+    
+    bot_id = context.bot.id
+    new_members = update.message.new_chat_members
+    
+    bot_added = any(member.id == bot_id for member in new_members)
+    
+    if bot_added:
+        added_by_user = update.message.from_user
+        if not added_by_user:
+            try:
+                await context.bot.leave_chat(chat_id=chat_id)
+            except Exception:
+                pass
+            return
+        
+        added_by_user_id = added_by_user.id
+        
+        if str(added_by_user_id) != ADMIN_USER_ID:
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="❌ Only the bot admin is allowed to add the bot to groups. The bot will leave this group."
+                )
+                await asyncio.sleep(2)
+                await context.bot.leave_chat(chat_id=chat_id)
+            except Exception as e:
+                try:
+                    await context.bot.leave_chat(chat_id=chat_id)
+                except Exception:
+                    pass
+        else:
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="✅ Bot has been added to the group by admin. Bot is ready to operate!"
+                )
+            except Exception:
+                pass
+
 def main():
     _fast_print(f"Starting bot with curl_cffi: {HAS_CURL_CFFI}")
     _fast_print("Make sure to install required packages:")
@@ -2478,9 +2853,10 @@ def main():
     application.add_handler(CommandHandler("removekey", admin_remove_key))
     application.add_handler(CommandHandler("activatekey", activate_key_command))
     application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
     application.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, handle_new_chat_members))
     application.run_polling()
 
 if __name__ == "__main__":
     main()
-
