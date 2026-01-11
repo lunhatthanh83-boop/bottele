@@ -1038,6 +1038,7 @@ PAYMENT_ACCOUNTS = {
 
 BOT_TOKEN = "8132478896:AAFhp3aySkbty5b1bLeKvQvvgap2hPqY1oE"
 ADMIN_USER_ID = "6557052839"
+ALLOWED_GROUP_CHAT_IDS = ["-1003103353083"]
 CHANNEL_INVITE_LINK = os.environ.get("CHANNEL_INVITE_LINK", "https://t.me/+-XbtP90HxSE1ZjE1")
 PRIVATE_BLOCK_MESSAGE = "You must join our channel chat to use the bot."
 
@@ -1317,7 +1318,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if user and chat_id is not None:
         if str(chat_id).startswith("-"):
-            if str(user.id) != ADMIN_USER_ID:
+            # Cho phép mọi người sử dụng bot trong các chat được phép
+            if str(chat_id) not in ALLOWED_GROUP_CHAT_IDS and str(user.id) != ADMIN_USER_ID:
                 await update.message.reply_text("Only admin can use this bot in group chats.")
                 return
         else:
@@ -2815,7 +2817,16 @@ async def handle_new_chat_members(update: Update, context: ContextTypes.DEFAULT_
         
         added_by_user_id = added_by_user.id
         
-        if str(added_by_user_id) != ADMIN_USER_ID:
+        # Cho phép bot ở lại trong các chat được phép
+        if str(chat_id) in ALLOWED_GROUP_CHAT_IDS:
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="✅ Bot has been added to the group. Bot is ready to operate!"
+                )
+            except Exception:
+                pass
+        elif str(added_by_user_id) != ADMIN_USER_ID:
             try:
                 await context.bot.send_message(
                     chat_id=chat_id,
