@@ -1036,7 +1036,7 @@ PAYMENT_ACCOUNTS = {
     'ltc': 'LbqPiubpXWrL27VMUGxu2AhdvQmVA37LEL'
 }
 
-BOT_TOKEN = "8132478896:AAFhp3aySkbty5b1bLeKvQvvgap2hPqY1oE"
+BOT_TOKEN = "8132478896:AAFKCavAxWCszw3UJJyv2wU2obdylAXZ-gM"
 ADMIN_USER_ID = "6557052839"
 ALLOWED_GROUP_CHAT_IDS = ["-1003103353083"]
 CHANNEL_INVITE_LINK = os.environ.get("CHANNEL_INVITE_LINK", "https://t.me/+-XbtP90HxSE1ZjE1")
@@ -2871,3 +2871,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
